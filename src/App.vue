@@ -1,11 +1,7 @@
-
-
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
-import StudentView from './views/student/StudentView.vue';
-
-
+import StudentView from './views/student/StudentView.vue'
 </script>
 
 <template>
@@ -46,16 +42,13 @@ import StudentView from './views/student/StudentView.vue';
         <li class="nav_links">
           <a href="#"><i class="bx bxs-home"></i><span>About</span></a>
         </li>
-
       </ul>
     </div>
 
     <div class="main">
       <RouterView />
     </div>
-
   </div>
-
 </template>
 
 <style scoped>

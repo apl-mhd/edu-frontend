@@ -5,7 +5,7 @@
   "scripts": {
     "build": "vite build",
     "lint": "eslint . --fix",
-    "dev": "vite",
+    "dev": "vite --port 4000",
     "format": "prettier --write src/",
     "preview": "vite preview"
   },
@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",
+    "@types/bootstrap": "^5.2.10",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/eslint-config-prettier": "^10.1.0",
     "eslint": "^9.18.0",

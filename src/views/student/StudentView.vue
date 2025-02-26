@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import StudentCreateUpdate from '@/components/student/StudentCreateUpdate.vue'
+import PaymentHistoryModal from './PaymentHistoryModal.vue'
+import { useTemplateRef } from 'vue'
 
 import axios from 'axios'
 
@@ -8,6 +10,7 @@ const batches = ref([])
 const academicYears = ref([])
 const homeTowns = ref([])
 const colleges = ref([])
+const paymentList = ref()
 
 const student = ref({
   id: null,
@@ -24,6 +27,8 @@ const student = ref({
 
 const errors = ref({})
 const studentsList = ref({ results: [] })
+const studentPaymentList = ref([])
+const studentTableRow = ref({})
 
 const q = ref('')
 const sortBy = ref('')
@@ -44,9 +49,29 @@ const getAllStudent = () => {
     .catch((error) => {})
 }
 
+//get payment history
+
+const getPaymentHistory = (student) => {
+  studentTableRow.value = student
+  // axios.defaults.xsrfCookieName = "csrftoken";
+  // axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
+  axios
+    .get(`http://127.0.0.1:8000/course/student-payment-list/${student.id}/`)
+    .then((response) => {
+      studentPaymentList.value = response.data.results
+      openModalRef.value.openModal()
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+}
+
 onMounted(() => {
   getAllStudent()
 })
+
+const counter = ref(0)
+const openModalRef = useTemplateRef('openModalRef')
 </script>
 
 <template>
@@ -98,11 +123,7 @@ onMounted(() => {
                   "
                 ></span>
 
-                <span
-                  class="badge ml-3 text-bg-info"
-                  @click="getPaymentHistory(i)"
-                  data-bs-toggle="modal"
-                  data-bs-target="#paymentHistory"
+                <span class="badge ml-3 text-bg-info" @click="getPaymentHistory(i)"
                   >Payment History</span
                 ><br />
                 <small>{{ i.latest_payment }}</small>
@@ -164,6 +185,13 @@ onMounted(() => {
       </nav>
     </div>
   </div>
+
+  <!-- modal payment history -->
+  <payment-history-modal
+    ref="openModalRef"
+    :student-payment-list="studentPaymentList"
+    :student-table-row="studentTableRow"
+  />
 </template>
 
 <style scoped></style>

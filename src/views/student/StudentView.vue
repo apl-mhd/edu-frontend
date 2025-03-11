@@ -44,7 +44,7 @@ const getAllStudent = () => {
   // axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN'
   axios
     .get(
-      `http://127.0.0.1:8000/student/filter/?q=${q.value}&filter_by=${sortBy.value}${filterBy.value}&batch=${batchBy.value}`,
+      `http://127.0.0.1:8000/students/filter/?q=${q.value}&filter_by=${sortBy.value}${filterBy.value}&batch=${batchBy.value}`,
     )
     .then((response) => {
       studentsList.value.results = response.data

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import StudentCreateUpdate from '@/components/student/StudentCreateUpdate.vue'
+import StudentCreateUpdate from '@/views/student/StudentCreateUpdate.vue'
 import PaymentHistoryModal from './PaymentHistoryModal.vue'
 import { useTemplateRef } from 'vue'
 
@@ -10,7 +10,7 @@ const batches = ref([])
 const academicYears = ref([])
 const homeTowns = ref([])
 const colleges = ref([])
-const paymentList = ref()
+const paymentList = ref(null)
 
 const student = ref({
   id: null,
@@ -34,6 +34,10 @@ const q = ref('')
 const sortBy = ref('')
 const batchBy = ref('')
 const filterBy = ref('')
+const paymentFormData = ref({
+  student: null,
+  payment_amount: 0,
+})
 
 const getAllStudent = () => {
   // axios.defaults.xsrfCookieName = 'csrftoken'
@@ -43,10 +47,18 @@ const getAllStudent = () => {
       `http://127.0.0.1:8000/student/filter/?q=${q.value}&filter_by=${sortBy.value}${filterBy.value}&batch=${batchBy.value}`,
     )
     .then((response) => {
-      studentsList.value = response.data
-      console.log(response.data)
+      studentsList.value.results = response.data
     })
     .catch((error) => {})
+}
+
+const getStudenDataForm = () => {
+  axios.get('http://127.0.0.1:8000/api/students/data-form/').then((response) => {
+    batches.value = response.data.batches
+    academicYears.value = response.data.academic_years
+    homeTowns.value = response.data.home_towns
+    colleges.value = response.data.colleges
+  })
 }
 
 //get payment history
@@ -68,14 +80,44 @@ const getPaymentHistory = (student) => {
 
 onMounted(() => {
   getAllStudent()
+  getStudenDataForm()
 })
 
-const counter = ref(0)
 const openModalRef = useTemplateRef('openModalRef')
+
+const submitStudentForm = (studentData) => {
+  console.log('form submit working', studentData)
+  axios
+    .post('http://127.0.0.1:8000/api/students/create/', studentData)
+    .then((response) => {
+      console.log('create', response)
+      getAllStudent()
+      // this.resetForm()
+      // this.showToast(response.data.message)
+    })
+    .catch((error) => {
+      console.log(error.response.data.errors)
+      // const errorData = error.response.data
+      // let msg = ''
+      // for (const [key, value] of Object.entries(errorData.errors)) {
+      //   msg += `${key}: ${value} <br>`
+      // }
+      // this.showToast(msg, 'error')
+      // this.toggleOffcanvas()
+    })
+}
 </script>
 
 <template>
-  <StudentCreateUpdate v-model:student="student" />
+  {{ student }}
+  <student-create-update
+    v-model:student="student"
+    :batches="batches"
+    :academic-years="academicYears"
+    :home-towns="homeTowns"
+    :colleges="colleges"
+    @submit-student-form="submitStudentForm"
+  />
   <div class="mb-4"></div>
 
   <div>
@@ -192,6 +234,65 @@ const openModalRef = useTemplateRef('openModalRef')
     :student-payment-list="studentPaymentList"
     :student-table-row="studentTableRow"
   />
+
+  <!--Start Make Payment modal-->
+  <div
+    class="modal fade"
+    id="paymentModal"
+    tabindex="-1"
+    aria-labelledby="paymentModalLable"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fs-5" id="paymentModalLable">
+            Payment of ID# [[studentTableRow.student_roll]] --- Name: [[studentTableRow.name]]
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <form @submit.prevent="submitPaymentForm">
+            <input type="text" hidden v-model="paymentFormData.student" />
+            <div class="row mb-3">
+              <div class="col">
+                <label for="courseFee" class="col-form-label">Due Amount</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="courseFee"
+                  disabled
+                  :value="studentTableRow.due_amount - paymentFormData.payment_amount"
+                />
+              </div>
+              <div class="col">
+                <label for="payment" class="col-form-label">Payment Amount</label>
+                <input
+                  min="1"
+                  type="text"
+                  class="form-control"
+                  v-model="paymentFormData.payment_amount"
+                  id="payment"
+                />
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Pay Now</button>
+            </div>
+          </form>
+        </div>
+        <div class="footer"></div>
+      </div>
+    </div>
+  </div>
+  <!--End Payment Modal-->
 </template>
 
 <style scoped></style>

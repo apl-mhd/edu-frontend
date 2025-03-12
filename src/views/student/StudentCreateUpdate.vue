@@ -2,52 +2,18 @@
 import { onMounted, ref } from 'vue'
 import axios from 'axios'
 
-const props = defineProps(['batches', 'academicYears', 'homeTowns', 'colleges'])
+const props = defineProps(['batches', 'academicYears', 'homeTowns', 'colleges', 'errors'])
 const emit = defineEmits(['resetForm', 'submitStudentForm'])
 
 const student = defineModel('student')
-const errors = ref({
-  name: '',
-})
+
 const studentsList = ref([])
-// const batches = ref([])
-// const academicYears = ref([])
-// const homeTowns = ref([])
-// const colleges = ref([])
 
 const studentForm = (studentData) => {
-  emit('submitStudentForm', studentData)
   axios.defaults.xsrfCookieName = 'csrftoken'
   axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN'
-  if (student.value.id) {
-    axios
-      .put(`http://127.0.0.1:8000/student/${student.value.id}/`, student.value.id)
-      .then((response) => {
-        // this.getAllStudent()
-        // this.resetForm()
-        // this.showToast('successfully updated')
-        // this.toggleOffcanvas()
-      })
-      .catch((error) => {})
-  } else {
-    // axios
-    //   .post('http://127.0.0.1:8000/student/test/', student.value)
-    //   .then((response) => {
-    //     // this.getAllStudent()
-    //     // this.resetForm()
-    //     // this.showToast(response.data.message)
-    //   })
-    //   .catch((error) => {
-    //     const errorData = error.response.data
-    //     let msg = ''
-    //     // for (const [key, value] of Object.entries(errorData.errors)) {
-    //     //   msg += `${key}: ${value} <br>`
-    //     // }
 
-    //     // this.showToast(msg, 'error')
-    //     // this.toggleOffcanvas()
-    //   })
-  }
+  emit('submitStudentForm', studentData)
 }
 </script>
 
@@ -66,6 +32,9 @@ const studentForm = (studentData) => {
           id="name"
           aria-describedby="nameValidation"
         />
+        <div id="validationServer03Feedback" class="invalid-feedback">
+          {{ errors.name }}
+        </div>
       </div>
 
       <div class="col-4">

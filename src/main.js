@@ -7,6 +7,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 // import 'bootstrap-vue-3/dist/bootstrap-vue-3.css'
 // import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import 'bootstrap'
+import 'vue3-toastify/dist/index.css'
 
 import App from './App.vue'
 import router from './router'

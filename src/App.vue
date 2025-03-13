@@ -20,7 +20,7 @@ import StudentView from './views/student/StudentView.vue'
           <router-link to="/"><i class="bx bxs-home"></i> <span>Home</span></router-link>
         </li>
         <li class="nav_links">
-          <router-link to="/student"><i class="bx bxs-home"></i> <span>Student</span></router-link>
+          <router-link to="/students"><i class="bx bxs-home"></i> <span>Student</span></router-link>
         </li>
 
         <li class="nav_links">

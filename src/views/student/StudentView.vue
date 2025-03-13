@@ -4,7 +4,7 @@ import StudentCreateUpdate from '@/views/student/StudentCreateUpdate.vue'
 import PaymentHistoryModal from './PaymentHistoryModal.vue'
 import { useTemplateRef } from 'vue'
 import { showToast } from '@/utils/toast'
-import { BOverlay } from 'bootstrap-vue-3'
+import { BOverlay, BCollapse, BButton } from 'bootstrap-vue-3'
 
 import axios from 'axios'
 
@@ -43,6 +43,35 @@ const paymentFormData = ref({
   student: null,
   payment_amount: 0,
 })
+
+const filters = ref([
+  {
+    id: 'name',
+    value: 'Name',
+  },
+  {
+    id: 'batch__name',
+    value: 'Batch',
+  },
+  {
+    id: 'hsc_batch__year',
+    value: 'HSC',
+  },
+  {
+    id: 'due_amount',
+    value: 'Due amount',
+  },
+  {
+    id: 'paid_current_month',
+    value: 'Paid',
+  },
+  {
+    id: 'latest_payment',
+    value: 'Latest payment',
+  },
+])
+
+const visible = ref(false)
 
 const isLoadingFalse = () => {
   isLoading.value = false
@@ -124,6 +153,7 @@ const getStudent = (studentId) => {
     .then((response) => {
       student.value = { ...response.data }
       isLoading.value = false
+      visible.value = true
     })
     .catch((error) => {})
 }
@@ -168,19 +198,70 @@ const openModalRef = useTemplateRef('openModalRef')
 
 <template>
   <b-overlay :show="isLoading">
-    <div></div>
-    {{ student }}
-    <student-create-update
-      v-model:student="student"
-      :batches="batches"
-      :academic-years="academicYears"
-      :home-towns="homeTowns"
-      :colleges="colleges"
-      :errors="errors"
-      @submit-student-form="submitStudentForm"
-      @reset-form="resetForm"
-    />
-    <div class="mb-4"></div>
+    <!-- <div>{{ student }}</div> -->
+    <b-collapse id="collapse-4" v-model="visible" class="mt-2 mb-5">
+      <student-create-update
+        v-model:student="student"
+        :batches="batches"
+        :academic-years="academicYears"
+        :home-towns="homeTowns"
+        :colleges="colleges"
+        :errors="errors"
+        @submit-student-form="submitStudentForm"
+        @reset-form="resetForm"
+      />
+    </b-collapse>
+    <div class="row g-3">
+      <div class="col-md-2">
+        <select @change="getAllStudent" v-model="filterBy" action="" class="form-select">
+          <option value="">Filter By</option>
+          <option :value="filter.id" v-for="filter in filters" :key="filter.id">
+            {{filter.value}}
+          </option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select @change="getAllStudent" v-model="sortBy" action="" class="form-select">
+          <option value="" selected>ASC</option>
+          <option value="-">DESC</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select
+          @change="getAllStudent"
+          v-model="batchBy"
+          class="form-select"
+          name="course"
+          id="student-batch"
+        >
+          <option value="">All Batch</option>
+          <option v-for="batch in batches" :key="batch.id" :value="batch.id">
+            {{batch.title}}
+          </option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <input
+          placeholder="Search..."
+          type="input"
+          v-model="q"
+          class="form-control input-sm"
+          @input="getAllStudent"
+        />
+      </div>
+      <div class="col-auto ms-auto">
+        <b-button
+          variant="primary"
+          size="sm"
+          :class="visible ? null : 'collapsed'"
+          :aria-expanded="visible ? 'true' : 'false'"
+          aria-controls="collapse-2"
+          @click="visible = !visible"
+        >
+          Add Student
+        </b-button>
+      </div>
+    </div>
 
     <div>
       <!--Start Student Table-->

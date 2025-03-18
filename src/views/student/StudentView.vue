@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import StudentCreateUpdate from '@/views/student/StudentCreateUpdate.vue'
 import PaymentHistoryModal from './PaymentHistoryModal.vue'
+import PaymentModal from './PaymentModal.vue'
 import { useTemplateRef } from 'vue'
 import { showToast } from '@/utils/toast'
 import { BOverlay, BCollapse, BButton } from 'bootstrap-vue-3'
@@ -39,6 +40,12 @@ const q = ref('')
 const sortBy = ref('')
 const batchBy = ref('')
 const filterBy = ref('')
+
+const blankPaymentForm = ref({
+  student: null,
+  payment_amount: 0,
+})
+
 const paymentFormData = ref({
   student: null,
   payment_amount: 0,
@@ -108,7 +115,6 @@ const submitStudentForm = (studentData) => {
     axios
       .put(`http://127.0.0.1:8000/api/students/${studentData.id}/`, studentData)
       .then((response) => {
-        console.log(response.data)
         getAllStudent()
         resetStudent()
         showToast("Student's information updated successfully", 'success')
@@ -146,6 +152,13 @@ const submitStudentForm = (studentData) => {
   }
 }
 
+const studentData = (student) => {
+  studentTableRow.value = student
+  paymentFormData.value.student = student.id
+  paymentModalRef.value.openModal()
+  // courseAssignFormData.value.student = student.id;
+}
+
 const getStudent = (studentId) => {
   isLoading.value = true
   axios
@@ -167,6 +180,21 @@ const getStudenDataForm = () => {
   })
 }
 
+const submitPaymentForm = () => {
+  axios
+    .post('http://127.0.0.1:8000/course/payment/', paymentFormData.value)
+    .then((response) => {
+      paymentFormData.value = { ...blankPaymentForm.value }
+      showToast(response.data.message, 'success')
+      // paymentModalRef.value.closeModal()
+      //getAllStudent()
+      // this.showToast(response.data.message)
+    })
+    .catch((error) => {
+      const errorData = error.response.data
+    })
+}
+
 //get payment history
 
 const getPaymentHistory = (student) => {
@@ -174,8 +202,8 @@ const getPaymentHistory = (student) => {
   axios
     .get(`http://127.0.0.1:8000/course/student-payment-list/${student.id}/`)
     .then((response) => {
-      studentPaymentList.value = response.data.results
-      openModalRef.value.openModal()
+      studentPaymentList.value = response.data
+      paymentHistoryModalRef.value.openModal()
     })
     .catch((error) => {
       const errorData = error.response.data
@@ -193,7 +221,8 @@ onMounted(() => {
   getStudenDataForm()
 })
 
-const openModalRef = useTemplateRef('openModalRef')
+const paymentHistoryModalRef = useTemplateRef('paymentHistoryModalRef')
+const paymentModalRef = useTemplateRef('paymentModalRef')
 </script>
 
 <template>
@@ -216,7 +245,7 @@ const openModalRef = useTemplateRef('openModalRef')
         <select @change="getAllStudent" v-model="filterBy" action="" class="form-select">
           <option value="">Filter By</option>
           <option :value="filter.id" v-for="filter in filters" :key="filter.id">
-            {{filter.value}}
+            {{ filter.value }}
           </option>
         </select>
       </div>
@@ -236,7 +265,7 @@ const openModalRef = useTemplateRef('openModalRef')
         >
           <option value="">All Batch</option>
           <option v-for="batch in batches" :key="batch.id" :value="batch.id">
-            {{batch.title}}
+            {{ batch.title }}
           </option>
         </select>
       </div>
@@ -325,14 +354,7 @@ const openModalRef = useTemplateRef('openModalRef')
                     </button>
                     <ul class="dropdown-menu">
                       <li>
-                        <a
-                          href="#"
-                          class="dropdown-item"
-                          data-bs-toggle="modal"
-                          data-bs-target="#paymentModal"
-                          @click="studentData(i)"
-                          >Make Payment</a
-                        >
+                        <a href="#" class="dropdown-item" @click="studentData(i)">Make Payment</a>
                       </li>
                       <hr />
                       <li>
@@ -373,71 +395,17 @@ const openModalRef = useTemplateRef('openModalRef')
 
     <!-- modal payment history -->
     <payment-history-modal
-      ref="openModalRef"
+      ref="paymentHistoryModalRef"
       :student-payment-list="studentPaymentList"
       :student-table-row="studentTableRow"
     />
 
-    <!--Start Make Payment modal-->
-    <div
-      class="modal fade"
-      id="paymentModal"
-      tabindex="-1"
-      aria-labelledby="paymentModalLable"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title fs-5" id="paymentModalLable">
-              Payment of ID# [[studentTableRow.student_roll]] --- Name: [[studentTableRow.name]]
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <form @submit.prevent="submitPaymentForm">
-              <input type="text" hidden v-model="paymentFormData.student" />
-              <div class="row mb-3">
-                <div class="col">
-                  <label for="courseFee" class="col-form-label">Due Amount</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="courseFee"
-                    disabled
-                    :value="studentTableRow.due_amount - paymentFormData.payment_amount"
-                  />
-                </div>
-                <div class="col">
-                  <label for="payment" class="col-form-label">Payment Amount</label>
-                  <input
-                    min="1"
-                    type="text"
-                    class="form-control"
-                    v-model="paymentFormData.payment_amount"
-                    id="payment"
-                  />
-                </div>
-              </div>
-
-              <div class="mb-3">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">
-                  Pay Now
-                </button>
-              </div>
-            </form>
-          </div>
-          <div class="footer"></div>
-        </div>
-      </div>
-    </div>
-    <!--End Payment Modal-->
+    <payment-modal
+      ref="paymentModalRef"
+      v-model:payment-form-data="paymentFormData"
+      :student-table-row="studentTableRow"
+      @submit-payment-form="submitPaymentForm"
+    />
   </b-overlay>
 </template>
 

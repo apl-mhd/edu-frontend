@@ -3,7 +3,7 @@ import { Modal } from 'bootstrap'
 import { useTemplateRef, onMounted } from 'vue'
 import { defineExpose } from 'vue'
 const props = defineProps(['studentPaymentList', 'studentTableRow'])
-const modalRef = useTemplateRef('myModal')
+const modalRef = useTemplateRef('modal')
 
 onMounted(() => {})
 const openModal = () => {
@@ -15,10 +15,9 @@ defineExpose({ openModal })
 </script>
 
 <template>
-
   <!-- Modal -->
   <div
-    ref="myModal"
+    ref="modal"
     class="modal fade"
     id="paymentHistoryModal"
     tabindex="-1"

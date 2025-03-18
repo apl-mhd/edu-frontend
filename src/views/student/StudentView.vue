@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import StudentCreateUpdate from '@/views/student/StudentCreateUpdate.vue'
 import PaymentHistoryModal from './PaymentHistoryModal.vue'
+import AssignCourseModal from './AssignCourseModal.vue'
 import PaymentModal from './PaymentModal.vue'
 import { useTemplateRef } from 'vue'
 import { showToast } from '@/utils/toast'
@@ -41,6 +42,8 @@ const sortBy = ref('')
 const batchBy = ref('')
 const filterBy = ref('')
 
+const courses = ref([])
+
 const blankPaymentForm = ref({
   student: null,
   payment_amount: 0,
@@ -49,6 +52,20 @@ const blankPaymentForm = ref({
 const paymentFormData = ref({
   student: null,
   payment_amount: 0,
+})
+
+const blankAssignCourseForm = ref({
+  student: null,
+  course: null,
+  discount_amount: null,
+  payment_amount: null,
+})
+
+const courseAssignFormData = ref({
+  student: null,
+  course: null,
+  discount_amount: null,
+  payment_amount: null,
 })
 
 const filters = ref([
@@ -109,6 +126,15 @@ const getAllStudent = () => {
     .catch((error) => {})
 }
 
+const getCourses = () => {
+  axios
+    .get(`http://127.0.0.1:8000/api/courses/`)
+    .then((response) => {
+      courses.value = response.data
+    })
+    .catch((error) => {})
+}
+
 const submitStudentForm = (studentData) => {
   isLoadingTrue()
   if (studentData.id) {
@@ -156,7 +182,13 @@ const studentData = (student) => {
   studentTableRow.value = student
   paymentFormData.value.student = student.id
   paymentModalRef.value.openModal()
-  // courseAssignFormData.value.student = student.id;
+}
+
+const assignCourse = (student) => {
+  getCourses()
+  studentTableRow.value = student
+  assignCourseModalRef.value.openModal()
+  courseAssignFormData.value.student = student.id
 }
 
 const getStudent = (studentId) => {
@@ -180,15 +212,27 @@ const getStudenDataForm = () => {
   })
 }
 
+const courseAssignForm = () => {
+  axios
+    .post('http://127.0.0.1:8000/course/course-assign/', courseAssignFormData.value)
+    .then((response) => {
+      showToast(response.data.message, 'success')
+      getAllStudent()
+      courseAssignFormData.value = { ...blankAssignCourseForm.value }
+    })
+    .catch((error) => {
+      const errorData = error.response.data
+      // this.showToast(errorData.message, 'error')
+    })
+}
+
 const submitPaymentForm = () => {
   axios
     .post('http://127.0.0.1:8000/course/payment/', paymentFormData.value)
     .then((response) => {
       paymentFormData.value = { ...blankPaymentForm.value }
       showToast(response.data.message, 'success')
-      // paymentModalRef.value.closeModal()
-      //getAllStudent()
-      // this.showToast(response.data.message)
+      getAllStudent()
     })
     .catch((error) => {
       const errorData = error.response.data
@@ -223,6 +267,7 @@ onMounted(() => {
 
 const paymentHistoryModalRef = useTemplateRef('paymentHistoryModalRef')
 const paymentModalRef = useTemplateRef('paymentModalRef')
+const assignCourseModalRef = useTemplateRef('assignCourseModalRef')
 </script>
 
 <template>
@@ -358,14 +403,7 @@ const paymentModalRef = useTemplateRef('paymentModalRef')
                       </li>
                       <hr />
                       <li>
-                        <a
-                          href="#"
-                          data-bs-toggle="modal"
-                          data-bs-target="#assignCourseModal"
-                          class="dropdown-item"
-                          @click="studentData(i)"
-                          >Assign Course</a
-                        >
+                        <a href="#" class="dropdown-item" @click="assignCourse(i)">Assign Course</a>
                       </li>
                       <hr />
                       <li>
@@ -405,6 +443,13 @@ const paymentModalRef = useTemplateRef('paymentModalRef')
       v-model:payment-form-data="paymentFormData"
       :student-table-row="studentTableRow"
       @submit-payment-form="submitPaymentForm"
+    />
+    <assign-course-modal
+      ref="assignCourseModalRef"
+      v-model:courseAssignFormData="courseAssignFormData"
+      :student-table-row="studentTableRow"
+      :courses="courses"
+      @course-assign-form="courseAssignForm"
     />
   </b-overlay>
 </template>

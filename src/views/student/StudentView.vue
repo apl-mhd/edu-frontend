@@ -1,11 +1,12 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
+import { useTemplateRef } from 'vue'
+import { showToast } from '@/utils/toast'
 import StudentCreateUpdate from '@/views/student/StudentCreateUpdate.vue'
 import PaymentHistoryModal from './PaymentHistoryModal.vue'
 import AssignCourseModal from './AssignCourseModal.vue'
 import PaymentModal from './PaymentModal.vue'
-import { useTemplateRef } from 'vue'
-import { showToast } from '@/utils/toast'
+
 import { BOverlay, BCollapse, BButton } from 'bootstrap-vue-3'
 
 import axios from 'axios'
@@ -129,7 +130,7 @@ const fetchStudents = (url = null) => {
   isLoadingFalse()
   let apiUrl =
     url ||
-    `http://127.0.0.1:8000/students/filter/?q=${q.value}&sort_by=${sortBy.value}&filter_by=${filterBy.value}&batch=${batchBy.value}&page=${page.value}&page_size=${query.value.pageSize}`
+    `http://127.0.0.1:8000/api/students/filter/?q=${q.value}&sort_by=${sortBy.value}&filter_by=${filterBy.value}&batch=${batchBy.value}&page=${page.value}&page_size=${query.value.pageSize}`
   console.log(apiUrl)
   console.log(filterBy.value)
 
@@ -155,7 +156,7 @@ const submitStudentForm = (studentData) => {
   isLoadingTrue()
   if (studentData.id) {
     axios
-      .put(`http://127.0.0.1:8000/api/students/${studentData.id}/`, studentData)
+      .put(`http://127.0.0.1:8000/api/students/update/${studentData.id}/`, studentData)
       .then((response) => {
         fetchStudents()
         resetStudent()
@@ -230,7 +231,7 @@ const getStudenDataForm = () => {
 
 const courseAssignForm = () => {
   axios
-    .post('http://127.0.0.1:8000/course/course-assign/', courseAssignFormData.value)
+    .post('http://127.0.0.1:8000/api/courses/course-assign/', courseAssignFormData.value)
     .then((response) => {
       showToast(response.data.message, 'success')
       fetchStudents()
@@ -244,7 +245,7 @@ const courseAssignForm = () => {
 
 const submitPaymentForm = () => {
   axios
-    .post('http://127.0.0.1:8000/course/payment/', paymentFormData.value)
+    .post('http://127.0.0.1:8000/api/courses/payment/', paymentFormData.value)
     .then((response) => {
       paymentFormData.value = { ...blankPaymentForm.value }
       showToast(response.data.message, 'success')
@@ -260,7 +261,7 @@ const submitPaymentForm = () => {
 const getPaymentHistory = (student) => {
   studentTableRow.value = student
   axios
-    .get(`http://127.0.0.1:8000/course/student-payment-list/${student.id}/`)
+    .get(`http://127.0.0.1:8000/api/courses/student-payment-list/${student.id}/`)
     .then((response) => {
       studentPaymentList.value = response.data
       paymentHistoryModalRef.value.openModal()
@@ -382,7 +383,7 @@ const assignCourseModalRef = useTemplateRef('assignCourseModalRef')
                 :key="i.id"
                 :class="i.paid_current_month ? 'table-success' : 'table-danger'"
               >
-                <td scope="row">{{ page > 1 ? pageSize + index + 1 : index + 1 }} {{ page }}</td>
+                <td scope="row">{{ index + 1 }}</td>
 
                 <td>
                   <small>{{ i.name }}</small> <br />
@@ -444,7 +445,7 @@ const assignCourseModalRef = useTemplateRef('assignCourseModalRef')
           </table>
         </div>
         <div class="row mt-3">
-          <div class="col-md-11">
+          <div class="col-md-10">
             <nav aria-label="Page navigation example">
               <ul class="pagination">
                 <li class="page-item" :class="{ disabled: !students.previous }">
@@ -465,7 +466,7 @@ const assignCourseModalRef = useTemplateRef('assignCourseModalRef')
             </nav>
           </div>
 
-          <div class="col-md-1">
+          <div class="col-md-2">
             <select v-model="query.pageSize" class="form-select" aria-label="Page Size">
               <option :value="i" v-for="i in pageSizes" :key="i">{{ i }}</option>
             </select>

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import StudentCreateUpdate from '@/views/student/StudentCreateUpdate.vue'
 import PaymentHistoryModal from './PaymentHistoryModal.vue'
 import AssignCourseModal from './AssignCourseModal.vue'
@@ -33,14 +33,26 @@ const blankStudent = {
 const student = ref(JSON.parse(JSON.stringify(blankStudent)))
 
 const errors = ref({})
-const studentsList = ref({ results: [] })
+const students = ref({})
 const studentPaymentList = ref([])
 const studentTableRow = ref({})
+
+const query = ref({
+  q: '',
+  sortBy: '',
+  batchBy: '',
+  filterBy: '',
+  pageSize: 10,
+  page: 1,
+})
 
 const q = ref('')
 const sortBy = ref('')
 const batchBy = ref('')
 const filterBy = ref('')
+const pageSize = ref(10)
+const page = ref(1)
+const pageSizes = ref([10, 25, 50, 100])
 
 const courses = ref([])
 
@@ -113,14 +125,18 @@ const resetForm = () => {
   errors.value = {}
 }
 
-const getAllStudent = () => {
+const fetchStudents = (url = null) => {
   isLoadingFalse()
+  let apiUrl =
+    url ||
+    `http://127.0.0.1:8000/students/filter/?q=${q.value}&sort_by=${sortBy.value}&filter_by=${filterBy.value}&batch=${batchBy.value}&page=${page.value}&page_size=${query.value.pageSize}`
+  console.log(apiUrl)
+  console.log(filterBy.value)
+
   axios
-    .get(
-      `http://127.0.0.1:8000/students/filter/?q=${q.value}&filter_by=${sortBy.value}${filterBy.value}&batch=${batchBy.value}`,
-    )
+    .get(apiUrl)
     .then((response) => {
-      studentsList.value.results = response.data
+      students.value = response.data
       isLoadingFalse()
     })
     .catch((error) => {})
@@ -141,7 +157,7 @@ const submitStudentForm = (studentData) => {
     axios
       .put(`http://127.0.0.1:8000/api/students/${studentData.id}/`, studentData)
       .then((response) => {
-        getAllStudent()
+        fetchStudents()
         resetStudent()
         showToast("Student's information updated successfully", 'success')
         errors.value = {}
@@ -163,7 +179,7 @@ const submitStudentForm = (studentData) => {
         showToast(response.data.message, 'success')
         resetStudent()
         errors.value = {}
-        getAllStudent()
+        fetchStudents()
       })
       .catch((error) => {
         const errorsList = error.response.data.errors
@@ -217,7 +233,7 @@ const courseAssignForm = () => {
     .post('http://127.0.0.1:8000/course/course-assign/', courseAssignFormData.value)
     .then((response) => {
       showToast(response.data.message, 'success')
-      getAllStudent()
+      fetchStudents()
       courseAssignFormData.value = { ...blankAssignCourseForm.value }
     })
     .catch((error) => {
@@ -232,7 +248,7 @@ const submitPaymentForm = () => {
     .then((response) => {
       paymentFormData.value = { ...blankPaymentForm.value }
       showToast(response.data.message, 'success')
-      getAllStudent()
+      fetchStudents()
     })
     .catch((error) => {
       const errorData = error.response.data
@@ -261,8 +277,15 @@ const getPaymentHistory = (student) => {
 }
 
 onMounted(() => {
-  getAllStudent()
+  fetchStudents()
   getStudenDataForm()
+})
+
+// watch(pageSize, (newPageSize) => {
+//   fetchStudents()
+// })
+watch(query.value, (newQuery) => {
+  fetchStudents()
 })
 
 const paymentHistoryModalRef = useTemplateRef('paymentHistoryModalRef')
@@ -287,7 +310,7 @@ const assignCourseModalRef = useTemplateRef('assignCourseModalRef')
     </b-collapse>
     <div class="row g-3">
       <div class="col-md-2">
-        <select @change="getAllStudent" v-model="filterBy" action="" class="form-select">
+        <select @change="fetchStudents()" v-model="filterBy" class="form-select">
           <option value="">Filter By</option>
           <option :value="filter.id" v-for="filter in filters" :key="filter.id">
             {{ filter.value }}
@@ -295,14 +318,14 @@ const assignCourseModalRef = useTemplateRef('assignCourseModalRef')
         </select>
       </div>
       <div class="col-md-2">
-        <select @change="getAllStudent" v-model="sortBy" action="" class="form-select">
+        <select @change="fetchStudents()" v-model="sortBy" class="form-select">
           <option value="" selected>ASC</option>
           <option value="-">DESC</option>
         </select>
       </div>
       <div class="col-md-3">
         <select
-          @change="getAllStudent"
+          @change="fetchStudents()"
           v-model="batchBy"
           class="form-select"
           name="course"
@@ -320,7 +343,7 @@ const assignCourseModalRef = useTemplateRef('assignCourseModalRef')
           type="input"
           v-model="q"
           class="form-control input-sm"
-          @input="getAllStudent"
+          @input="fetchStudents()"
         />
       </div>
       <div class="col-auto ms-auto">
@@ -355,11 +378,11 @@ const assignCourseModalRef = useTemplateRef('assignCourseModalRef')
             </thead>
             <tbody>
               <tr
-                v-for="(i, index) in studentsList.results"
+                v-for="(i, index) in students.results"
                 :key="i.id"
                 :class="i.paid_current_month ? 'table-success' : 'table-danger'"
               >
-                <td scope="row">{{ index + 1 }}</td>
+                <td scope="row">{{ page > 1 ? pageSize + index + 1 : index + 1 }} {{ page }}</td>
 
                 <td>
                   <small>{{ i.name }}</small> <br />
@@ -420,14 +443,34 @@ const assignCourseModalRef = useTemplateRef('assignCourseModalRef')
             </tbody>
           </table>
         </div>
-        <nav aria-label="Page navigation example">
-          <ul class="pagination">
-            <li class="page-item">
-              <a class="page-link" :href="studentsList.prev">Previous</a>
-            </li>
-            <li class="page-item"><a class="page-link" :href="studentsList.next">Next</a></li>
-          </ul>
-        </nav>
+        <div class="row mt-3">
+          <div class="col-md-11">
+            <nav aria-label="Page navigation example">
+              <ul class="pagination">
+                <li class="page-item" :class="{ disabled: !students.previous }">
+                  <a class="page-link" href="#" @click.prevent="fetchStudents(students.previous)"
+                    >Previous</a
+                  >
+                </li>
+                <li class="page-item">
+                  <a
+                    class="page-link"
+                    href="#"
+                    :class="{ disabled: !students.next }"
+                    @click.prevent="fetchStudents(students.next)"
+                    >Next</a
+                  >
+                </li>
+              </ul>
+            </nav>
+          </div>
+
+          <div class="col-md-1">
+            <select v-model="query.pageSize" class="form-select" aria-label="Page Size">
+              <option :value="i" v-for="i in pageSizes" :key="i">{{ i }}</option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
 

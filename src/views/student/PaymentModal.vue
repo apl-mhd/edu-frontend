@@ -5,7 +5,7 @@ import { useTemplateRef, defineExpose, ref } from 'vue'
 const paymentFormData = defineModel('paymentFormData')
 const props = defineProps(['studentTableRow'])
 const modalRef = useTemplateRef('modal')
-const emit = defineEmits(['submitPaymentForm'])
+const emit = defineEmits(['createPayment'])
 
 const openModal = () => {
   const modal = new Modal(modalRef.value)
@@ -18,8 +18,8 @@ const closeModal = () => {
 
 defineExpose({ openModal, closeModal })
 
-const submitPaymentForm = (paymentData) => {
-  emit('submitPaymentForm', paymentData)
+const createPayment = (paymentData) => {
+  emit('createPayment', paymentData)
 }
 </script>
 
@@ -46,7 +46,7 @@ const submitPaymentForm = (paymentData) => {
           ></button>
         </div>
         <div class="modal-body">
-          <form @submit.prevent="submitPaymentForm(paymentFormData)">
+          <form @submit.prevent="createPayment(paymentFormData)">
             <input type="text" hidden v-model="paymentFormData.student" />
             <div class="row mb-3">
               <div class="col">

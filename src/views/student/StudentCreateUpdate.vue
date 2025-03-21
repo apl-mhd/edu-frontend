@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue'
 import axios from 'axios'
 
 const props = defineProps(['batches', 'academicYears', 'homeTowns', 'colleges', 'errors'])
-const emit = defineEmits(['resetForm', 'submitStudentForm'])
+const emit = defineEmits(['resetForm', 'createStudent'])
 
 const student = defineModel('student')
 
@@ -13,7 +13,7 @@ const studentForm = (studentData) => {
   axios.defaults.xsrfCookieName = 'csrftoken'
   axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN'
 
-  emit('submitStudentForm', studentData)
+  emit('createStudent', studentData)
 }
 </script>
 

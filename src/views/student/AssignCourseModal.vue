@@ -5,10 +5,10 @@ import { Modal } from 'bootstrap'
 const props = defineProps(['studentTableRow', 'courses'])
 const courseAssignFormData = defineModel('courseAssignFormData')
 const modalRef = useTemplateRef('modal')
-const emit = defineEmits(['courseAssignForm'])
+const emit = defineEmits(['courseAssign'])
 
 const submitForm = (data) => {
-  emit('courseAssignForm', data)
+  emit('courseAssign', data)
 }
 
 const openModal = () => {

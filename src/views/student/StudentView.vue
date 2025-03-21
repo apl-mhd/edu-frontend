@@ -143,7 +143,7 @@ const fetchStudents = (url = null) => {
     .catch((error) => {})
 }
 
-const getCourses = () => {
+const fetchCourses = () => {
   axios
     .get(`http://127.0.0.1:8000/api/courses/`)
     .then((response) => {
@@ -152,7 +152,7 @@ const getCourses = () => {
     .catch((error) => {})
 }
 
-const submitStudentForm = (studentData) => {
+const createStudent = (studentData) => {
   isLoadingTrue()
   if (studentData.id) {
     axios
@@ -202,7 +202,7 @@ const studentData = (student) => {
 }
 
 const assignCourse = (student) => {
-  getCourses()
+  fetchCourses()
   studentTableRow.value = student
   assignCourseModalRef.value.openModal()
   courseAssignFormData.value.student = student.id
@@ -229,7 +229,7 @@ const getStudenDataForm = () => {
   })
 }
 
-const courseAssignForm = () => {
+const courseAssign = () => {
   axios
     .post('http://127.0.0.1:8000/api/courses/course-assign/', courseAssignFormData.value)
     .then((response) => {
@@ -243,7 +243,7 @@ const courseAssignForm = () => {
     })
 }
 
-const submitPaymentForm = () => {
+const createPayment = () => {
   axios
     .post('http://127.0.0.1:8000/api/courses/payment/', paymentFormData.value)
     .then((response) => {
@@ -258,7 +258,7 @@ const submitPaymentForm = () => {
 
 //get payment history
 
-const getPaymentHistory = (student) => {
+const fetchPayments = (student) => {
   studentTableRow.value = student
   axios
     .get(`http://127.0.0.1:8000/api/courses/student-payment-list/${student.id}/`)
@@ -305,7 +305,7 @@ const assignCourseModalRef = useTemplateRef('assignCourseModalRef')
         :home-towns="homeTowns"
         :colleges="colleges"
         :errors="errors"
-        @submit-student-form="submitStudentForm"
+        @create-student="createStudent"
         @reset-form="resetForm"
       />
     </b-collapse>
@@ -406,7 +406,7 @@ const assignCourseModalRef = useTemplateRef('assignCourseModalRef')
                     "
                   ></span>
 
-                  <span class="badge ml-3 text-bg-info" @click="getPaymentHistory(i)"
+                  <span class="badge ml-3 text-bg-info" @click="fetchPayments(i)"
                     >Payment History</span
                   ><br />
                   <small>{{ i.latest_payment }}</small>
@@ -486,14 +486,14 @@ const assignCourseModalRef = useTemplateRef('assignCourseModalRef')
       ref="paymentModalRef"
       v-model:payment-form-data="paymentFormData"
       :student-table-row="studentTableRow"
-      @submit-payment-form="submitPaymentForm"
+      @create-payment="createPayment"
     />
     <assign-course-modal
       ref="assignCourseModalRef"
       v-model:courseAssignFormData="courseAssignFormData"
       :student-table-row="studentTableRow"
       :courses="courses"
-      @course-assign-form="courseAssignForm"
+      @course-assign="courseAssign"
     />
   </b-overlay>
 </template>

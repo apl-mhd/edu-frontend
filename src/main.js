@@ -12,7 +12,7 @@ import 'vue3-toastify/dist/index.css'
 import VueSelect from 'vue-select'
 import App from './App.vue'
 import router from './router'
-import axios from 'axios'
+
 
 const app = createApp(App)
 

@@ -6,10 +6,8 @@ import StudentCreateUpdate from '@/views/student/StudentCreateUpdate.vue'
 import PaymentHistoryModal from './PaymentHistoryModal.vue'
 import AssignCourseModal from './AssignCourseModal.vue'
 import PaymentModal from './PaymentModal.vue'
-
+import apiClient from '@/services/apiClient'
 import { BOverlay, BCollapse, BButton } from 'bootstrap-vue-3'
-
-import axios from 'axios'
 
 const batches = ref([])
 const academicYears = ref([])
@@ -130,11 +128,11 @@ const fetchStudents = (url = null) => {
   isLoadingFalse()
   let apiUrl =
     url ||
-    `http://127.0.0.1:8000/api/students/filter/?q=${q.value}&sort_by=${sortBy.value}&filter_by=${filterBy.value}&batch=${batchBy.value}&page=${page.value}&page_size=${query.value.pageSize}`
+    `/students/filter/?q=${q.value}&sort_by=${sortBy.value}&filter_by=${filterBy.value}&batch=${batchBy.value}&page=${page.value}&page_size=${query.value.pageSize}`
   console.log(apiUrl)
   console.log(filterBy.value)
 
-  axios
+  apiClient
     .get(apiUrl)
     .then((response) => {
       students.value = response.data
@@ -144,8 +142,8 @@ const fetchStudents = (url = null) => {
 }
 
 const fetchCourses = () => {
-  axios
-    .get(`http://127.0.0.1:8000/api/courses/`)
+  apiClient
+    .get(`/courses/`)
     .then((response) => {
       courses.value = response.data
     })
@@ -155,8 +153,8 @@ const fetchCourses = () => {
 const createStudent = (studentData) => {
   isLoadingTrue()
   if (studentData.id) {
-    axios
-      .put(`http://127.0.0.1:8000/api/students/update/${studentData.id}/`, studentData)
+    apiClient
+      .put(`/students/update/${studentData.id}/`, studentData)
       .then((response) => {
         fetchStudents()
         resetStudent()
@@ -174,8 +172,8 @@ const createStudent = (studentData) => {
         isLoadingFalse()
       })
   } else {
-    axios
-      .post('http://127.0.0.1:8000/api/students/create/', studentData)
+    apiClient
+      .post('api/students/create/', studentData)
       .then((response) => {
         showToast(response.data.message, 'success')
         resetStudent()
@@ -210,8 +208,8 @@ const assignCourse = (student) => {
 
 const getStudent = (studentId) => {
   isLoading.value = true
-  axios
-    .get(`http://127.0.0.1:8000/api/students/${studentId}/`)
+  apiClient
+    .get(`/students/${studentId}/`)
     .then((response) => {
       student.value = { ...response.data }
       isLoading.value = false
@@ -221,7 +219,7 @@ const getStudent = (studentId) => {
 }
 
 const getStudenDataForm = () => {
-  axios.get('http://127.0.0.1:8000/api/students/data-form/').then((response) => {
+  apiClient.get('/students/data-form/').then((response) => {
     batches.value = response.data.batches
     academicYears.value = response.data.academic_years
     homeTowns.value = response.data.home_towns
@@ -230,8 +228,8 @@ const getStudenDataForm = () => {
 }
 
 const courseAssign = () => {
-  axios
-    .post('http://127.0.0.1:8000/api/courses/course-assign/', courseAssignFormData.value)
+  apiClient
+    .post('/courses/course-assign/', courseAssignFormData.value)
     .then((response) => {
       showToast(response.data.message, 'success')
       fetchStudents()
@@ -244,8 +242,8 @@ const courseAssign = () => {
 }
 
 const createPayment = () => {
-  axios
-    .post('http://127.0.0.1:8000/api/courses/payment/', paymentFormData.value)
+  apiClient
+    .post('/courses/payment/', paymentFormData.value)
     .then((response) => {
       paymentFormData.value = { ...blankPaymentForm.value }
       showToast(response.data.message, 'success')
@@ -260,8 +258,8 @@ const createPayment = () => {
 
 const fetchPayments = (student) => {
   studentTableRow.value = student
-  axios
-    .get(`http://127.0.0.1:8000/api/courses/student-payment-list/${student.id}/`)
+  apiClient
+    .get(`/courses/student-payment-list/${student.id}/`)
     .then((response) => {
       studentPaymentList.value = response.data
       paymentHistoryModalRef.value.openModal()

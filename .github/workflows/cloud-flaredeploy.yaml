@@ -26,9 +26,7 @@ jobs:
       - name: Build the project
         run: npm run build
 
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v3
+        
 
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

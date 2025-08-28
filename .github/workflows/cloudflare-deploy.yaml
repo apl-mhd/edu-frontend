@@ -31,4 +31,4 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: '4.33.0'
           working-directory: .
-          # command: pages deploy ./dist --project-name=edu
+          command: npx wrangler pages deploy ./dist --project-name=edu

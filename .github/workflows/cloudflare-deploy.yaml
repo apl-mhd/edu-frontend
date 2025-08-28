@@ -33,4 +33,4 @@ jobs:
           # working-directory: .
           command: |
             pages project list
-            pages deploy ./dist --project-name=edu
+          # pages deploy ./dist --project-name=edu

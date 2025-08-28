@@ -29,5 +29,6 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: edu
-          command: pages deploy ./dist
+          wranglerVersion: '4.33.0'
+          working-directory: .
+          command: pages deploy ./dist --project-name=edu

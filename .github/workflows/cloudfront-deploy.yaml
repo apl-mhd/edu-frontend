@@ -2,7 +2,7 @@ name: CloudFront CDN deployment
 on:
   push:
     branches:
-      - master
+      - main
   workflow_dispatch:
 env:
   region: ap-southeast-1
@@ -33,7 +33,7 @@ jobs:
       - name: Upload build artifacts to S3 bucket
         run: |
           aws s3 cp --recursive ./build/ s3://ic-devops-b4-mahmud/edu/
-          
+
       # - name: Invalidate cache of cloudfront distribution
       #   run: |
       #     aws cloudfront create-invalidation --distribution-id ${{ vars.CF_DISTRIBUTION_ID }} --paths "/*"

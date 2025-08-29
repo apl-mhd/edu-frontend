@@ -1,0 +1,39 @@
+name: CloudFront Deployment
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  region: ap-southeast-1
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '23'
+
+      - name: install dependencies
+        run: npm install & npm run build
+
+      - name: Assume AWS IAM Role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
+          aws-region: ${{ env.region }}
+          role-session-name: Deployment
+
+      - name: Uplod build artifacts to S3
+        run: |
+          aws s3 cp --recursive ./dist/ s3://ic-devops-b4-mahmud/edu/

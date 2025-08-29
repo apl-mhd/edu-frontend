@@ -1,41 +1,38 @@
-name: CloudFront Deployment
-
+name: CloudFront CDN deployment
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
-
 env:
   region: ap-southeast-1
-
 permissions:
   id-token: write
   contents: read
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '23'
-
-      - name: install dependencies
+      - name: Install required packages and build react application
         run: |
-          npm install 
+          npm install
           npm run build
 
       - name: Assume AWS IAM Role
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
           aws-region: ${{ env.region }}
-          role-session-name: Deployment
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
+          role-session-name: deployment
 
-      - name: Uplod build artifacts to S3
+      - name: Upload build artifacts to S3 bucket
         run: |
-          aws s3 cp --recursive ./dist/ s3://ic-devops-b4-mahmud/edu/
+          aws s3 cp --recursive ./build/ s3://ic-devops-b4-mahmud/edu/
+      # - name: Invalidate cache of cloudfront distribution
+      #   run: |
+      #     aws cloudfront create-invalidation --distribution-id ${{ vars.CF_DISTRIBUTION_ID }} --paths "/*"
